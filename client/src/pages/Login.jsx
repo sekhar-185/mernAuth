@@ -1,14 +1,59 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { useState } from 'react';
 import { assets } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
+import { AppContext } from '../context/AppContext';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const Login = () => {
     const navigate=useNavigate();
+
+    const {backendUrl,setIsLoggedin}=useContext(AppContext);
+    console.log(backendUrl);
     const [state,setState]=useState("Sign Up");
     const [name,setName]=useState("");
     const [password,setPassword]=useState("");
     const [email,setEmail]=useState("");
+
+    const onSubmitHandler=async (e)=>{
+        try {
+            e.preventDefault();
+            axios.defaults.withCredentials=true;
+            if(state==='Sign Up')
+            {
+                const {data}= await axios.post(backendUrl+'/api/auth/register',{name,email,password});
+                if(data.success)
+                {
+                    setIsLoggedin(true);
+                    navigate('/');
+                }
+                else{
+                    toast.error(data.message);
+
+                }
+            }
+            else{
+                const {data}= await axios.post(backendUrl+'/api/auth/login',{email,password});
+                if(data.success)
+                {
+                    setIsLoggedin(true);
+                    navigate('/');
+                }
+                else{
+                    toast.error(data.message);
+
+                }
+
+            }
+            
+        } catch (error) {
+            toast.error(error.message);
+            
+        }
+    }
+
+
   return (
     <div className='flex items-center justify-center  min-h-screen px-6 sm:px-0 bg-gradient-to-br from-blue-200 to-purple-400'>
         <img onClick={()=>navigate('/')} src={assets.logo} className='absolute left-5 top-5 sm:left-20 w-28 sm:w-32 cursor-pointer ' alt="" />
@@ -18,7 +63,7 @@ const Login = () => {
                 <h2 className='text-3xl font-semibold text-white text-center mb-3'>{state==="Sign Up" ? 'Create account' :"Login"}</h2>
                 <p className='text-sm text-center mb-6'>{state==="Sign Up"? 'Create Your account': "Login to your account!"}</p>
                 
-                <form action="">
+                <form onSubmit={onSubmitHandler}>
                     {state==="Sign Up"&&
                     (
                     <div className='mb-4 flex items-center gap-3 w-full rounded-full bg-[#333A5c] px-5 py-2.5'>
@@ -43,13 +88,13 @@ const Login = () => {
                 ? 
                 (
                 <p className='text-center text-gray-400 text-xs mt-4'>Already have an account?{" "}
-                    <span>Login here</span>
+                    <span className='cursor-pointer hover:underline' onClick={()=>setState("Login")}>Login here</span>
                 </p>
                 )
                 :
                 (
                  <p className='text-center text-gray-400 text-xs mt-4'>Don't have an account?{" "}
-                    <span>Sign Up</span>
+                    <span className='cursor-pointer hover:underline' onClick={()=>setState("Sign Up")}>Sign Up</span>
                 </p>
                 )
                 }
