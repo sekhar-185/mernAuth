@@ -109,19 +109,20 @@ export const sendVerifyOtp=async (req,res)=>{
         {
             return res.json({success:false,message:'Account Already Verified.'});
         }
-        const opt=String(Math.floor(100000+Math.random()*900000));
-        user.verifyOtp=opt;
-        user.verifyOtpExpireAt=DataTransfer.now()+24*60*60*1000;
+        const otp=String(Math.floor(100000+Math.random()*900000));
+        user.verifyOtp=otp;
+        user.verifyOtpExpireAt=Date.now()+24*60*60*1000;
         await user.save();
 
         const mailOptions={
             from:process.env.SENDER_EMAIL,
-            to:email,
+            to:user.email,
             subject:'Account Verification OTP',
             text:`Your OTP is ${otp}. Verify your account using this otp`,
 
         }
         await transporter.sendMail(mailOptions);
+        return res.json({success:true,message:'Verification OTP Sent on Email.'})
 
     }
     catch(error)
@@ -196,22 +197,24 @@ export const sendResetOtp=async (req,res)=>{
             return res.json({success:false,message:"User not found"})
         }
 
-        const opt=String(Math.floor(100000+Math.random()*900000));
-        user.resetOtp=opt;
-        user.resetOtpExpireAt=DataTransfer.now()+15*60*1000;
+        const otp=String(Math.floor(100000+Math.random()*900000));
+        user.resetOtp=otp;
+        user.resetOtpExpireAt=Date.now()+15*60*1000;
         await user.save();
 
         const mailOptions={
             from:process.env.SENDER_EMAIL,
             to:user.email,
             subject:'Password Reset OTP',
-            text:'Your OTP for resetting your password is ${otp}. Use this OTP to proceed with resetting your password.'
+            text:`Your OTP for resetting your password is ${otp}. Use this OTP to proceed with resetting your password.`
         }
 
         await transporter.sendMail(mailOptions);
-        return res.json({success:false,message:error.message});
+        return res.json({success:true,meassage:"OTP sent to your email"});
+      
         
     } catch (error) {
+        return res.json({success:false,message:error.message});
 
         
     }
